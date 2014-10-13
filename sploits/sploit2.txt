@@ -1,0 +1,7 @@
+In the second target we also have a buffer overflow vulnerability, but it's little more tricky than the first one. The program have its own version of the strcpy, called nstrcpy. It checks the size of the provided array, but  in the for loop (fragment of code that actually copy the data),  the condition parameter is " i <= len" when it should be " i < len" (or something similar). This bug allow us to overwrite the first byte from the base pointer (EBP) on the stack(that is actually the last one due the little endian architecture) - but how can we use it?
+On the end of the bar function, our modified EBP on the stack is popped on the EBP register, then on the foo function, ESP = EBP and we pop the first word after ESP thinking it is instructor pointer (EIP). It means that by altering EBP on the stack we can alter ESP and make it pop the shell code address on the EIP.
+In my attack, I created a buffer of size 241 and filled it with NOP's from 0 to 236  - size of shellcode, after that I put the shellcode and its address in the end of the buffer ( I got the buffer address on the same way I did on the first exploit). Finally, I alter the first byte from EBP to "0x70".
+I figure out this value  on the following way: 
+Shellcode Address: 0xbffffc88 (buffer Address) + 236(Nops  + shellcode) - 4 ( due the pop thing on EBP) = 0xbfffffd70.
+As we can just modify the last byte of ebp, buff[240] = "Ox70".
+

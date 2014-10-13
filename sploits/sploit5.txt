@@ -1,0 +1,8 @@
+In the target 5 we have a format string vulnerability. The string provided by the user is "printed" into the  buffer variable with a size check but without checking its content. So, based on the format string we provide we can overwrites the EIP value stored on the "foo" stack with the address of our shellcode on the stack(or somewhere in the NOP's).
+In this kind of attack we need two things, the address that we want to write to, in this case the EIP address on the stack, and a number to write to that address. We'll put the address we want to write to in the beginning of our attack buffer.
+Later, I follow the standard buffer overflow, filling my attack buffer with NOP's and the shellcode.
+The last part of the buffer will contain the format string, the key for this kind of attack, its format will be  
+"%u%u%012582523u%n".
+The first part of my format string (%u%u) will manipulate the stack pointer on the "snprint" pointing it to the buff. After that we have a "%x%n" string format, it's write the value of x on the EIP address. In my attack, we just going to overwrite the first 3 bytes of EIP on the stack with 0xbffffb (12582907 in decimal),  but we need to take in consideration what was written before it, so we have 12582907  - 4(target address) - 378(NOP's and shellcode)  -2( two %u) = 12582523.As soon as we just going to write the first 3 bytes of EIP, we have to add one byte to this address, so it will be "0xbffffced".
+I figure out the EIP and buff address through gdb.
+
